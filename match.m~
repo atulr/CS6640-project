@@ -1,0 +1,7 @@
+function [matches, score] = match(I1, I2)
+I1gs = rgb2gray(im2single(I1));
+I2gs = rgb2gray(im2single(I2));
+
+[F1, D1] = vl_sift(I1gs);
+[F2, D2] = vl_sift(I2gs);
+findmatch(D1, D2);
