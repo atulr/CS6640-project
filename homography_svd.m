@@ -1,32 +1,65 @@
-% Calculate a homography that maps im1 to im2
+
 function T = homography_svd(points1, points2)
-% for more details, please see: Lecture 12, page 60, http://www.vision.ee.ethz.ch/~bleibe/multimedia/teaching/cv-ws08/cv08-part12-local-features2.pdf 
-% Build matrix
-xaxb = points2(:,1) .* points1(:,1);
-xayb = points2(:,1) .* points1(:,2);
-yaxb = points2(:,2) .* points1(:,1);
-yayb = points2(:,2) .* points1(:,2);
+% Matrix built as per http://www.vision.ee.ethz.ch/~bleibe/multimedia/teaching/cv-ws08/cv08-exercise05.pdf
+A = zeros(size(points1, 2)*2, 9);
+%     [points1, T1] = normalise2dpts(points1);
+%     [points2, T2] = normalise2dpts(points2);
 
-
-A = zeros(size(points1, 1)*2, 9);
 A(1:2:end,3) = 1;
 A(2:2:end,6) = 1;
-A(1:2:end,1:2) = points1;
-A(2:2:end,4:5) = points1;
-A(1:2:end,7) = -xaxb;
-A(1:2:end,8) = -xayb;
-A(2:2:end,7) = -yaxb;
-A(2:2:end,8) = -yayb;
-A(1:2:end,9) = -points2(:,1);
-A(2:2:end,9) = -points2(:,2);
 
-% Solve using smallest eigenvector
+A(1, 1) = points1(1, 1);
+A(1, 2) = points1(2, 1);
+A(3, 1) = points1(1, 2);
+A(3, 2) = points1(2, 2);
+A(5, 1) = points1(1, 3);
+A(5, 2) = points1(2, 3);
+A(7, 1) = points1(1, 4);
+A(7, 2) = points1(2, 4);
+
+A(2, 4) = A(1, 1);
+A(2, 5) = A(1, 2);
+A(4, 4) = A(3, 1);
+A(4, 5) = A(3, 2);
+A(6, 4) = A(5, 1);
+A(6, 5) = A(5, 2);
+A(8, 4) = A(7, 1);
+A(8, 5) = A(7, 2);
+
+A(1, 7) =  -(points1(1, 1) * points2(1, 1));
+A(2, 7) =  -(points1(2, 1) * points2(1, 1));
+A(3, 7) =  -(points1(1, 2) * points2(1, 2));
+A(4, 7) =  -(points1(2, 2) * points2(1, 2));
+A(5, 7) =  -(points1(1, 3) * points2(1, 3));
+A(6, 7) =  -(points1(2, 3) * points2(1, 3));
+A(7, 7) =  -(points1(1, 4) * points2(1, 4));
+A(8, 7) =  -(points1(2, 4) * points2(1, 4));
+
+A(1, 8) =  -(points1(1, 1) * points2(2, 1));
+A(2, 8) =  -(points1(2, 1) * points2(2, 1));
+A(3, 8) =  -(points1(1, 2) * points2(2, 2));
+A(4, 8) =  -(points1(2, 2) * points2(2, 2));
+A(5, 8) =  -(points1(1, 3) * points2(2, 3));
+A(6, 8) =  -(points1(2, 3) * points2(2, 3));
+A(7, 8) =  -(points1(1, 4) * points2(2, 4));
+A(8, 8) =  -(points1(2, 4) * points2(2, 4));
+
+A(1, 9) =  -points2(1, 1);
+A(2, 9) =  -points2(2, 1);
+A(3, 9) =  -points2(1, 2);
+A(4, 9) =  -points2(2, 2);
+A(5, 9) =  -points2(1, 3);
+A(6, 9) =  -points2(2, 3);
+A(7, 9) =  -points2(1, 4);
+A(8, 9) =  -points2(2, 4);
+
+
 [U,S,V] = svd(A);
+
 h = V(:,9) ./ V(9,9);
-x = reshape(h,3,3);
 
-T = maketform('projective', x);
+T = reshape(h,3,3);
 
-% The Matlab way:
-% (only works with 4 points)
-%T = maketform('projective', points2, points1);
+% T = T2\T*T1;
+% T = maketform('projective', x);
+

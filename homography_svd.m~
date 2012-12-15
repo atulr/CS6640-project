@@ -1,0 +1,21 @@
+
+function T = homography_svd(points1, points2)
+% Matrix built as per http://www.vision.ee.ethz.ch/~bleibe/multimedia/teaching/cv-ws08/cv08-exercise05.pdf
+A = zeros(size(points1, 2)*2, 9);
+%     [points1, T1] = normalise2dpts(points1);
+%     [points2, T2] = normalise2dpts(points2);
+   x1 = points1(1
+   ax = [-x1, -y1, -ones(size(x1)), zeros(size(x1)), zeros(size(x1)),...
+         zeros(size(x1)), x2.*x1, x2.*y1, x2];
+   ay = [zeros(size(x1)), zeros(size(x1)),... 
+         zeros(size(x1)), -x1, -y1, -ones(size(x1)), y2.*x1, y2.*y1, y2];
+   A = [ax; ay];
+
+   [U,S,V] = svd(A);
+   H = reshape(V(:,9), 3, 3);
+   H = H';
+
+disp(T);
+% T = T2\T*T1;
+% T = maketform('projective', x);
+
