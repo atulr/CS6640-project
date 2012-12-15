@@ -46,23 +46,25 @@ best_n_inliers = -1;
 idx_best = zeros(5,1);
 n_pts = 5;
 it_improv={}; % saves the amount of inliers per improvment
-n_iters = 500; % Iteration rule of thumb :)
+n_iters = 100; % Iteration rule of thumb :)
 F2r = zeros(size(F1, 1), size(F1, 2));
 F2r(1:size(F2,1), 1:size(F2,2)) = F2;
+
 for i = 1:n_iters
     for j = 1:4
         randVal = rand(1);
         randInd = floor(randVal * size(matches, 2));
+        
         if(randInd == 0)
             randInd = 1;
         end
-        X(1, j) = floor(F1(1, randInd));
-        X(2, j) = floor(F1(2, randInd));
-        Y(1, j) = floor(F2(1, randInd));
-        Y(2, j) = floor(F2(2, randInd));
+        X(1, j) = floor(F1(1, matches(1, randInd)));
+        X(2, j) = floor(F1(2, matches(1, randInd)));
+        Y(1, j) = floor(F2r(1, matches(2, randInd)));
+        Y(2, j) = floor(F2r(2, matches(2, randInd)));
     end
-    
-    H2D = homography2d(X, Y);
+%     H2D = homography2d(X, Y);
+H2D = Y * pinv(X);
     T = maketform('projective',H2D');
     [TF1x TF1y] = tformfwd(T, F1(1, :), F1(2, :));
     distXsq = (TF1x - F2r(1,:)).^2;
@@ -71,14 +73,17 @@ for i = 1:n_iters
     for k=1:length(distXsq)
         e=sqrt(distXsq(k)+distYsq(k));
         if e <= 2.0 % inlier radius in px
+
             n_inliers=n_inliers+1;
         end
     end
-    
+    disp(n_inliers);
     % improvment check
     if n_inliers > best_n_inliers
         best_n_inliers = n_inliers;
         T_im1 = T;
+        
+
         H1 = H2D;
 %         idx_best = idxs;
     end
@@ -86,7 +91,7 @@ end
 
 
 
-% disp(it_improv);
+
 
 % best_pts=zeros(length(idx_best),4);
 % best_pts(:,[1 2])=F1(:, idx_best);

@@ -7,6 +7,7 @@ xayb = points2(:,1) .* points1(:,2);
 yaxb = points2(:,2) .* points1(:,1);
 yayb = points2(:,2) .* points1(:,2);
 
+
 A = zeros(size(points1, 1)*2, 9);
 A(1:2:end,3) = 1;
 A(2:2:end,6) = 1;
