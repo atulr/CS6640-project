@@ -21,12 +21,9 @@ numMatches = size(matches,2) ;
 
 bestBad = 9999999999999;
 for t=1:100
-    subset = vl_colsubset(1:numMatches, 4);
-    
-    A = [] ;
-    for i = subset
-       A = cat(1, A, kron(X1(:,i)', vl_hat(X2(:,i)))) ;
-    end
+   
+    subset = vl_colsubset(1:numMatches, 4) ;
+
     for j = 1:4
         randVal = rand(1);
         randInd = floor(randVal * size(matches, 2));
@@ -39,31 +36,29 @@ for t=1:100
         Y(1, j) = floor(F2(1, matches(2, randInd)));
         Y(2, j) = floor(F2(2, matches(2, randInd)));
     end
+
+    H = homography_svd(X, Y);
     X(3, :) = 1;
     Y(3, :) = 1;
-    
-    H = homography2d(X, Y);
-    
     count = 0;
-    X2_ = H' * X ;
-    du = X2_(1,:)./X2_(3,:) - Y(1,:)./Y(3,:) ;
-    dv = X2_(2,:)./X2_(3,:) - Y(2,:)./Y(3,:) ;
+    X2P = H' * X ;
+    du = X2P(1,:)./X2P(3,:) - Y(1,:)./Y(3,:) ;
+    dv = X2P(2,:)./X2P(3,:) - Y(2,:)./Y(3,:) ;
+    
     if((du.*du + dv.*dv) < 6*6 )
+        
       count = count + 1;  
     end
     
     if bestBad > count
-        disp(count);
-        bestH = H';
+        disp('here');
+        bestH = H;
         bestBad = count;
     end
 end
 
-disp(bestH);
 
-% [score, best] = max(score) ;
-% H = H{best} ;
-% ok = ok{best} ;
+
 
 % disp(bestH);
 % for i = 1:n_iters

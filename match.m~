@@ -7,20 +7,27 @@ I2gs = im2single(rgb2gray(I2));
 
 [matches score] = vl_ubcmatch(D1, D2, 1.5);
 H = findhomography(F1, F2, matches);
+disp(H);
 
-Tr = maketform('projective', H');
+Tr = maketform('projective', inv(H'));
+% 
+% % init masks
+% mask_im2 = uint8(ones(size(I2,1),size(I2,2)));
+% 
+% 
+% mask_im1 = uint8(ones(size(I1, 1), size(I1, 2)));
+% % 
+% % % Transform image 2 so it fits on image 1
 
-% init masks
-mask_im2 = uint8(ones(size(I2,1),size(I2,2)));
 
+[I3, XDATA, YDATA] = imtransform(I2, Tr, 'XYScale', 1);
+% % mask_im2 = imtransform(mask_im2, Tr);
+% disp(size(I2, 1));
+% disp(size(I2, 2));
+% disp(XDATA);
+% disp(YDATA);
 
-mask_im1 = uint8(ones(size(I1, 1), size(I1, 2)));
-
-% Transform image 2 so it fits on image 1
-[I2, XDATA, YDATA] = imtransform(I2, Tr, 'XYScale', 1);
-mask_im2 = imtransform(mask_im2, H);
-imshow(I2);
-% stitched image bounds
+% % stitched image bounds
 % W=max( [size(I1,2) size(I1,2)-XDATA(1) size(I2,2) size(I2,2)+XDATA(1)] );
 % H=max( [size(I1,1) size(I1,1)-YDATA(1) size(I2,1) size(I2,1)+YDATA(1)] );
 % 
@@ -73,6 +80,36 @@ imshow(I2);
 % axis off;
 % movegui(fH, 'east');
 % imshow(stitched_image);
+box2 = [1  size(I2,2) size(I2,2)  1 ;
+        1  1           size(I2,1)  size(I2,1) ;
+        1  1           1            1 ] ;
+box2_ = inv(H) * box2 ;
+box2_(1,:) = box2_(1,:) ./ box2_(3,:) ;
+box2_(2,:) = box2_(2,:) ./ box2_(3,:) ;
+ur = min([1 box2_(1,:)]):max([size(I1,2) box2_(1,:)]) ;
+vr = min([1 box2_(2,:)]):max([size(I1,1) box2_(2,:)]) ;
 
+[u,v] = meshgrid(ur,vr) ;
+
+im1_ = imtransform(I1, Tr, 'XYScale', 1);
+disp(size(im1_));
+z_ = H(3,1) * u + H(3,2) * v + H(3,3) ;
+u_ = (H(1,1) * u + H(1,2) * v + H(1,3)) ./ z_ ;
+v_ = (H(2,1) * u + H(2,2) * v + H(2,3)) ./ z_ ;
+im2_ = imtransform(I2, Tr, 'XYScale', 1);
+rows = max(size(im1_, 1), size(im2_, 1));
+cols = max(size(im1_, 2), size(im2_, 2));
+im1_foo = zeros(rows, cols);
+im2_foo = zeros(rows, cols);
+im1_foo(1:size(im1_, 1), 1:size(im1_,2)) = im1_;
+im2_foo(1:size(im2_, 1), 1:size(im2_,2)) = im2_;
+mass = ~isnan(im1_foo) + ~isnan(im2_foo) ;
+im1_foo(isnan(im1_foo)) = 0 ;
+im2_f00(isnan(im2_foo)) = 0 ;
+mosaic = (im1_foo + im2_foo) ./ mass ;
+
+figure(2) ; clf ;
+imagesc(mosaic) ; axis image off ;
+title('Mosaic') ;
 end
 
